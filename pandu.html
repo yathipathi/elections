@@ -147,7 +147,6 @@
 
 <script>
 // ====== BASIC SETUP ======
-
 document.getElementById("billDate").value = new Date().toLocaleDateString("en-GB");
 let billCount = 1;
 const STORAGE_KEY = "slx_saved_bills";
@@ -157,7 +156,6 @@ function updateSerialField() {
 }
 
 // ====== PRICE TABLES ======
-
 const price = {
   0:0, 100:350, 200:450, 300:550, 400:650,
   500:750, 600:850, 700:950, 800:1050, 900:1150, 1000:1250
@@ -169,56 +167,50 @@ const posterPrice = {
 };
 
 // ====== CALCULATION ======
-
 function updateTotals() {
-  const n   = price[document.getElementById('namunaCopies').value] || 0;
+  const n = price[document.getElementById('namunaCopies').value] || 0;
   const n45 = price[document.getElementById('namuna45Copies').value] || 0;
-  const h   = price[document.getElementById('handslipCopies').value] || 0;
-  const p   = posterPrice[document.getElementById('posterCopies').value] || 0;
+  const h = price[document.getElementById('handslipCopies').value] || 0;
+  const p = posterPrice[document.getElementById('posterCopies').value] || 0;
 
   const s = (parseInt(document.getElementById('stickerCopies').value)||0) * 50;
   const k = (parseInt(document.getElementById('kanduvalCopies').value)||0) * 15;
   const j = (parseInt(document.getElementById('jendaCopies').value)||0) * 20;
   const b = (parseInt(document.getElementById('badgeCopies').value)||0) * 5;
 
-  document.getElementById('namunaAmount').value   = n;
+  document.getElementById('namunaAmount').value = n;
   document.getElementById('namuna45Amount').value = n45;
   document.getElementById('handslipAmount').value = h;
-  document.getElementById('posterAmount').value   = p;
-  document.getElementById('stickerAmount').value  = s;
+  document.getElementById('posterAmount').value = p;
+  document.getElementById('stickerAmount').value = s;
   document.getElementById('kanduvalAmount').value = k;
-  document.getElementById('jendaAmount').value    = j;
-  document.getElementById('badgeAmount').value    = b;
+  document.getElementById('jendaAmount').value = j;
+  document.getElementById('badgeAmount').value = b;
 
-  document.getElementById('grandTotal').textContent = n + n45 + h + p + s + k + j + b;
+  document.getElementById('grandTotal').textContent = n+n45+h+p+s+k+j+b;
 }
 
-// Auto update totals
-document.querySelectorAll("input,select").forEach(el => {
-  el.addEventListener("input", updateTotals);
-  el.addEventListener("change", updateTotals);
+// Auto update listeners
+document.querySelectorAll("input,select").forEach(el=>{
+  el.addEventListener("input",updateTotals);
+  el.addEventListener("change",updateTotals);
 });
 
 // ====== STORAGE ======
-
 function getStoredBills() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
 }
-
 function saveStoredBills(bills) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(bills));
 }
 
 function appendBillRow(bill) {
-  const tbody = document.getElementById('savedTable');
-  const row = document.createElement('tr');
-  row.dataset.serial = bill.serial;
+  const tbody=document.getElementById('savedTable');
+  const row=document.createElement('tr');
+  row.dataset.serial=bill.serial;
 
-  row.innerHTML = `
+  row.innerHTML=`
     <td>${String(bill.serial).padStart(2,"0")}</td>
     <td>${bill.date}</td>
     <td>${bill.name}</td>
@@ -228,75 +220,58 @@ function appendBillRow(bill) {
   tbody.appendChild(row);
 }
 
-function loadSavedBills() {
-  const bills = getStoredBills();
-  bills.forEach(bill => appendBillRow(bill));
-
-  if (bills.length > 0) {
-    billCount = bills[bills.length - 1].serial + 1;
-  }
+function loadSavedBills(){
+  const bills=getStoredBills();
+  bills.forEach(b=>appendBillRow(b));
+  if(bills.length>0){ billCount=bills[bills.length-1].serial+1; }
   updateSerialField();
 }
 
 // ====== BUTTON ACTIONS ======
-
-function clearForm() {
-  document.querySelectorAll("select").forEach(sel => sel.value = "0");
-  document.querySelectorAll("input").forEach(inp => {
-    if (inp.id !== "billDate" && inp.id !== "serialNo") inp.value = "";
+function clearForm(){
+  document.querySelectorAll("select").forEach(sel=>sel.value="0");
+  document.querySelectorAll("input").forEach(inp=>{
+    if(inp.id!=="billDate"&&inp.id!=="serialNo") inp.value="";
   });
-  document.getElementById("grandTotal").textContent = "0";
+  document.getElementById("grandTotal").textContent="0";
 }
 
-function deleteRow(btn) {
-  const row = btn.closest("tr");
-  const serial = parseInt(row.dataset.serial, 10);
+function deleteRow(btn){
+  const row=btn.closest("tr");
+  const serial=parseInt(row.dataset.serial);
   row.remove();
-
-  let bills = getStoredBills().filter(b => b.serial !== serial);
+  let bills=getStoredBills().filter(b=>b.serial!==serial);
   saveStoredBills(bills);
 }
 
-function saveEntry() {
+function saveEntry(){
   updateTotals();
-  const total = parseInt(document.getElementById('grandTotal').textContent);
+  const total=parseInt(document.getElementById('grandTotal').textContent);
+  if(total===0){ alert("No amount to save."); return; }
 
-  if (total === 0) {
-    alert("No amount to save.");
-    return;
-  }
-
-  const bill = {
-    serial: billCount,
-    date: document.getElementById('billDate').value,
-    name: document.getElementById('customerName').value || "-",
-    amount: total
+  const bill={
+    serial:billCount,
+    date:document.getElementById('billDate').value,
+    name:document.getElementById('customerName').value || "-",
+    amount:total
   };
 
   appendBillRow(bill);
-
-  const bills = getStoredBills();
-  bills.push(bill);
+  const bills=getStoredBills(); bills.push(bill);
   saveStoredBills(bills);
 
-  billCount++;
-  updateSerialField();
-  clearForm();
+  billCount++; updateSerialField(); clearForm();
 }
 
-function sendWhatsApp() {
+function sendWhatsApp(){
   updateTotals();
+  let num=document.getElementById('customerWhatsapp').value.replace(/\D/g,"");
+  if(num.length===10) num="91"+num;
+  if(!num){ alert("Enter WhatsApp number."); return; }
 
-  const name = document.getElementById('customerName').value || "-";
-  let num = document.getElementById('customerWhatsapp').value.replace(/\D/g, "");
-  if (num.length === 10) num = "91" + num;
+  const name=document.getElementById('customerName').value || "-";
 
-  if (!num) {
-    alert("Please enter customer WhatsApp number.");
-    return;
-  }
-
-  const msg =
+  const msg=
 `📅 Date: ${document.getElementById('billDate').value}
 🧾 Bill No: ${document.getElementById('serialNo').value}
 
@@ -316,17 +291,15 @@ Badges: ${document.getElementById('badgeCopies').value} – ₹${document.getEle
 💰 Total: ₹${document.getElementById('grandTotal').textContent}
 
 ━━━━━━━━━━━━━━━━━━
-
 🌟 Best Wishes - Sree Lakshmi Printing Press HUZURABAD 🇮🇳
 ━━━━━━━━━━━━━━━━━━
 🙏 Thank You 🙏`;
 
-  window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank");
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,"_blank");
 }
 
-// Load saved bills
+// Initialize
 loadSavedBills();
-
 </script>
 
 </body>
